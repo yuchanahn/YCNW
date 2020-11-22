@@ -1,0 +1,4 @@
+﻿  YCNW.cpp
+C:\Users\anyc1\Documents\GitHub\YCNW\YCNW\yc_net.hpp(57,23): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\anyc1\Documents\GitHub\YCNW\YCNW\yc_net.hpp(74,9): warning C4101: 'i' :참조되지 않은 지역 변수입니다.
+  YCNW.vcxproj -> C:\Users\anyc1\Documents\GitHub\YCNW\x64\Debug\YCNW.exe

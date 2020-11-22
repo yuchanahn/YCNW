@@ -1,0 +1,9 @@
+﻿  YCNW_client_test.cpp
+C:\Users\anyc1\Documents\GitHub\YCNW\YCNW_client_test\YCNW_client_test.cpp(54,40): warning C4244: '인수': 'SOCKET'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\anyc1\Documents\GitHub\YCNW\YCNW_client_test\YCNW_client_test.cpp(67,38): warning C4267: '인수': 'size_t'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  코드를 생성하고 있습니다.
+  36 of 71 functions (50.7%) were compiled, the rest were copied from previous compilation.
+    34 functions were new in current compilation
+    5 functions had inline decision re-evaluated but remain unchanged
+  코드를 생성했습니다.
+  YCNW_client_test.vcxproj -> C:\Users\anyc1\Documents\GitHub\YCNW\x64\Release\YCNW_client_test.exe

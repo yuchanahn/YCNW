@@ -1,0 +1,18 @@
+﻿  YCNW_client_test.cpp
+C:\Users\anyc1\Documents\GitHub\YCNW\YCNW_client_test\YCNW_client_test.cpp(13,44): error C2664: 'void ErrorHandling(char *)': 인수 1을(를) 'const char [20]'에서 'char *'(으)로 변환할 수 없습니다.
+C:\Users\anyc1\Documents\GitHub\YCNW\YCNW_client_test\YCNW_client_test.cpp(13,23): message : 문자열 리터럴로부터의 변환은 const 한정자가 손실됩니다(/Zc:strictStrings 참조).
+C:\Users\anyc1\Documents\GitHub\YCNW\YCNW_client_test\YCNW_client_test.cpp(5,6): message : 'ErrorHandling' 선언을 참조하십시오.
+C:\Users\anyc1\Documents\GitHub\YCNW\YCNW_client_test\YCNW_client_test.cpp(17,39): error C2664: 'void ErrorHandling(char *)': 인수 1을(를) 'const char [15]'에서 'char *'(으)로 변환할 수 없습니다.
+C:\Users\anyc1\Documents\GitHub\YCNW\YCNW_client_test\YCNW_client_test.cpp(17,23): message : 문자열 리터럴로부터의 변환은 const 한정자가 손실됩니다(/Zc:strictStrings 참조).
+C:\Users\anyc1\Documents\GitHub\YCNW\YCNW_client_test\YCNW_client_test.cpp(5,6): message : 'ErrorHandling' 선언을 참조하십시오.
+C:\Users\anyc1\Documents\GitHub\YCNW\YCNW_client_test\YCNW_client_test.cpp(26,41): error C2664: 'void ErrorHandling(char *)': 인수 1을(를) 'const char [17]'에서 'char *'(으)로 변환할 수 없습니다.
+C:\Users\anyc1\Documents\GitHub\YCNW\YCNW_client_test\YCNW_client_test.cpp(26,23): message : 문자열 리터럴로부터의 변환은 const 한정자가 손실됩니다(/Zc:strictStrings 참조).
+C:\Users\anyc1\Documents\GitHub\YCNW\YCNW_client_test\YCNW_client_test.cpp(5,6): message : 'ErrorHandling' 선언을 참조하십시오.
+C:\Users\anyc1\Documents\GitHub\YCNW\YCNW_client_test\YCNW_client_test.cpp(56,48): error C2664: 'void ErrorHandling(char *)': 인수 1을(를) 'const char [16]'에서 'char *'(으)로 변환할 수 없습니다.
+C:\Users\anyc1\Documents\GitHub\YCNW\YCNW_client_test\YCNW_client_test.cpp(56,31): message : 문자열 리터럴로부터의 변환은 const 한정자가 손실됩니다(/Zc:strictStrings 참조).
+C:\Users\anyc1\Documents\GitHub\YCNW\YCNW_client_test\YCNW_client_test.cpp(5,6): message : 'ErrorHandling' 선언을 참조하십시오.
+C:\Users\anyc1\Documents\GitHub\YCNW\YCNW_client_test\YCNW_client_test.cpp(68,48): error C2664: 'void ErrorHandling(char *)': 인수 1을(를) 'const char [16]'에서 'char *'(으)로 변환할 수 없습니다.
+C:\Users\anyc1\Documents\GitHub\YCNW\YCNW_client_test\YCNW_client_test.cpp(68,31): message : 문자열 리터럴로부터의 변환은 const 한정자가 손실됩니다(/Zc:strictStrings 참조).
+C:\Users\anyc1\Documents\GitHub\YCNW\YCNW_client_test\YCNW_client_test.cpp(5,6): message : 'ErrorHandling' 선언을 참조하십시오.
+C:\Users\anyc1\Documents\GitHub\YCNW\YCNW_client_test\YCNW_client_test.cpp(22,32): error C4996: 'inet_addr': Use inet_pton() or InetPton() instead or define _WINSOCK_DEPRECATED_NO_WARNINGS to disable deprecated API warnings
+C:\Users\anyc1\Documents\GitHub\YCNW\YCNW_client_test\YCNW_client_test.cpp(46,9): error C4996: 'scanf': This function or variable may be unsafe. Consider using scanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.

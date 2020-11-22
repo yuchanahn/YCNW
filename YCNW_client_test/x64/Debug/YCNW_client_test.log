@@ -1,0 +1,4 @@
+﻿  YCNW_client_test.cpp
+C:\Users\anyc1\Documents\GitHub\YCNW\YCNW_client_test\YCNW_client_test.cpp(54,40): warning C4244: '인수': 'SOCKET'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\anyc1\Documents\GitHub\YCNW\YCNW_client_test\YCNW_client_test.cpp(67,38): warning C4267: '인수': 'size_t'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  YCNW_client_test.vcxproj -> C:\Users\anyc1\Documents\GitHub\YCNW\x64\Debug\YCNW_client_test.exe

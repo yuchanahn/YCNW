@@ -19,4 +19,18 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="yc_net.hpp">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="curried.hpp">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="YCstack.hpp">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="YCmem_pool.hpp">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>
