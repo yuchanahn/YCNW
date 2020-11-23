@@ -12,7 +12,7 @@ void ErrorHandling(const char* message);
 
 
 
-auto packet_reader = [](int s) {
+auto packet_reader = [](SOCKET s) {
     char recv_msg[1024] = { 0 };
     while (1) {
         auto received = recv(s, recv_msg, 1024, 0);
@@ -21,7 +21,7 @@ auto packet_reader = [](int s) {
         else if (received == 0)         return 0;
 
         recv_msg[min(received, 1023)] = 0;
-        printf("Recv[%s]\n", recv_msg);
+        printf("%s\n", recv_msg);
     }
 };
 
@@ -56,7 +56,7 @@ int main()
     while (true)
     {
         flags = 0;
-        printf("전송할데이터(종료를원할시exit)\n");
+        printf(">> ");
 
         std::cin >> message;
 
@@ -64,7 +64,7 @@ int main()
 
         auto len = strlen(message);
 
-        send(hSocket, message, len, 0);
+        send(hSocket, message, static_cast<int>(len), 0);
     }
 
     closesocket(hSocket);

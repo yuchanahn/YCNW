@@ -13,10 +13,10 @@
 #include <algorithm>
 #include <ranges>
 
-
 #include "curried.hpp"
+#include "yc_function.hpp"
+#include "yc_strand.hpp"
 
-#include "YCmem_pool.hpp"
 
 #define BUFSIZE 1024
 
@@ -46,7 +46,6 @@ unsigned int __stdcall CompletionThread(LPVOID pComPort);
 
 #pragma comment(lib, "ws2_32.lib")
 
-
 template <typename E, typename F>
 auto is_success_or(E e, F f) {
     if (e) f(e.value());
@@ -64,8 +63,23 @@ struct client_t
     bool is_active;
 };
 
+
+
+
+struct server_setting_t
+{
+    // 0 is std::thread::hardware_concurrency();
+    int io_thread_number;
+    // 0 is std::thread::hardware_concurrency();
+    int strand_thread_number;
+    int port;
+};
+
+
+
 std::vector<client_t> clnts;
 
+server_setting_t server_setting;
 
 static auto io_init = [](io_data_t* io_data, io_data_t::eio_type t, int len) {
     memset(&io_data->overlapped, 0, sizeof(OVERLAPPED));
@@ -78,6 +92,18 @@ static auto io_init = [](io_data_t* io_data, io_data_t::eio_type t, int len) {
 
 static auto in_io_init = std::bind(io_init, std::placeholders::_1, io_data_t::eio_type::i, BUFSIZE);
 
+auto strand_run = [](bool& stop_button, yc_net::strand_pool& strand_pool) {
+    std::vector<std::thread> ths;
+
+    int tn = server_setting.strand_thread_number ? server_setting.strand_thread_number
+                                                 : std::thread::hardware_concurrency();
+
+    for (int i = 0; i < server_setting.strand_thread_number; ++i)
+    {
+        ths.push_back(std::thread([&stop_button, &strand_pool] { strand_pool.run_in_this_thread(stop_button); }));
+    }
+};
+
 
 int main_server()
 {
@@ -88,8 +114,12 @@ int main_server()
         error_f
     );
 
+    int tn = server_setting.io_thread_number ? server_setting.io_thread_number
+                                             : std::thread::hardware_concurrency();
+
     HANDLE hCompletionPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
-    for (unsigned int i = 0; i < std::thread::hardware_concurrency(); ++i)
+
+    for (int i = 0; i < tn; ++i)
         _beginthreadex(NULL, 0, CompletionThread, (LPVOID)hCompletionPort, 0, NULL);
 
     SOCKET hServSock = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
@@ -149,11 +179,8 @@ int main_server()
             NULL);
     }
 
-
     return 0;
 }
-
-
 
 
 unsigned int __stdcall CompletionThread(LPVOID pComPort)
@@ -171,7 +198,7 @@ unsigned int __stdcall CompletionThread(LPVOID pComPort)
             cp,
             &len,                       
             (PULONG_PTR)&clnt_info,     
-            (LPOVERLAPPED*)&io_data,  
+            (LPOVERLAPPED*)&io_data,
             INFINITE);                  
 
         if (bSuccess) {
@@ -190,9 +217,8 @@ unsigned int __stdcall CompletionThread(LPVOID pComPort)
 
                 io_data->wsaBuf.len = len;
 
-                auto is_active = [](auto& i) { return i.is_active; };
 
-                for (auto& i : clnts | std::views::filter(is_active))
+                for (auto& i : clnts | std::views::filter(is_act_true))
                 {
                     auto wio_data = io_init(new io_data_t, io_data_t::eio_type::o, len);
                     std::copy(io_data->buffer, io_data->buffer + io_data->wsaBuf.len, wio_data->buffer);

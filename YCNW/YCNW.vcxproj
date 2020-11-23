@@ -147,9 +147,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="curried.hpp" />
-    <ClInclude Include="YCmem_pool.hpp" />
-    <ClInclude Include="YCstack.hpp" />
+    <ClInclude Include="yc_function.hpp" />
     <ClInclude Include="yc_net.hpp" />
+    <ClInclude Include="yc_strand.hpp" />
+    <ClInclude Include="yc_thread_safe_queue.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
