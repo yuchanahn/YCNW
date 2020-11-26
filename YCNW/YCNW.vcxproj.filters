@@ -23,9 +23,6 @@
     <ClInclude Include="yc_net.hpp">
       <Filter>소스 파일</Filter>
     </ClInclude>
-    <ClInclude Include="curried.hpp">
-      <Filter>소스 파일</Filter>
-    </ClInclude>
     <ClInclude Include="yc_strand.hpp">
       <Filter>소스 파일</Filter>
     </ClInclude>
@@ -34,6 +31,12 @@
     </ClInclude>
     <ClInclude Include="yc_thread_safe_queue.hpp">
       <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="yc_curried.hpp">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="yc_pakcet.hpp">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

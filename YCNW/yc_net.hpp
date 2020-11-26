@@ -13,9 +13,10 @@
 #include <algorithm>
 #include <ranges>
 
-#include "curried.hpp"
+#include "yc_curried.hpp"
 #include "yc_function.hpp"
 #include "yc_strand.hpp"
+#include "yc_pakcet.hpp"
 
 
 #define BUFSIZE 1024
@@ -61,17 +62,17 @@ struct client_t
     unsigned int code;
     SOCKET socket;
     bool is_active;
+
+    YC_Packet_ReadManager packet_reader;
+    char send_buf[1024];
 };
-
-
-
 
 struct server_setting_t
 {
-    // 0 is std::thread::hardware_concurrency();
+    // 0 = hardware concurrency;
     int io_thread_number;
-    // 0 is std::thread::hardware_concurrency();
-    int strand_thread_number;
+    // 0 = hardware concurrency;
+    int worker_thread_number;
     int port;
 };
 
@@ -92,15 +93,13 @@ static auto io_init = [](io_data_t* io_data, io_data_t::eio_type t, int len) {
 
 static auto in_io_init = std::bind(io_init, std::placeholders::_1, io_data_t::eio_type::i, BUFSIZE);
 
-auto strand_run = [](bool& stop_button, yc_net::strand_pool& strand_pool) {
-    std::vector<std::thread> ths;
+auto strand_run = [](bool& stop_button) {
+    static std::vector<std::thread> ths;
 
-    int tn = server_setting.strand_thread_number ? server_setting.strand_thread_number
-                                                 : std::thread::hardware_concurrency();
-
-    for (int i = 0; i < server_setting.strand_thread_number; ++i)
-    {
-        ths.push_back(std::thread([&stop_button, &strand_pool] { strand_pool.run_in_this_thread(stop_button); }));
+    int th_cnt = server_setting.worker_thread_number ? server_setting.worker_thread_number
+                                                      : std::thread::hardware_concurrency();
+    for (int i = 0; i < th_cnt; ++i){
+        ths.push_back(std::thread([&stop_button] { yc_net::run_wokers_in_this_thread(stop_button); }));
     }
 };
 
@@ -114,12 +113,10 @@ int main_server()
         error_f
     );
 
-    int tn = server_setting.io_thread_number ? server_setting.io_thread_number
-                                             : std::thread::hardware_concurrency();
-
     HANDLE hCompletionPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
-
-    for (int i = 0; i < tn; ++i)
+    int th_cnt = server_setting.io_thread_number ? server_setting.io_thread_number
+                                                  : std::thread::hardware_concurrency();
+    for (int i = 0; i < th_cnt; ++i)
         _beginthreadex(NULL, 0, CompletionThread, (LPVOID)hCompletionPort, 0, NULL);
 
     SOCKET hServSock = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
@@ -137,6 +134,7 @@ int main_server()
 
     int RecvBytes;
     int Flags;
+
 
     while (1)
     {
@@ -212,11 +210,12 @@ unsigned int __stdcall CompletionThread(LPVOID pComPort)
 
             if (io_data->io_type == io_data->i)
             {
+                clnts[io_data->code].packet_reader.read((unsigned char*)io_data->wsaBuf.buf, len);
+
                 io_data->wsaBuf.buf[len] = '\0';
                 printf("%s : %s\n", inet_ntoa(clnt_info->_addr.sin_addr), io_data->wsaBuf.buf);
 
                 io_data->wsaBuf.len = len;
-
 
                 for (auto& i : clnts | std::views::filter(is_act_true))
                 {

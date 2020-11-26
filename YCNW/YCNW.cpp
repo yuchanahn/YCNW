@@ -5,13 +5,20 @@
 
 int main()
 {
-    yc_net::strand_pool strand_pool;
+    server_setting = server_setting_t{
+        .io_thread_number = 2,
+        .worker_thread_number = 2,
+        .port = 2738
+    };
 
-    auto& n = strand_pool.new_strand();
+    bool stop = false;
 
-
-
-
+    int a = 0;
+    auto w = yc_net::create_worker();
+    strand_run(stop);
+    yc_net::add_sync_worker(w, [&] { for (int i = 0; i < 100000; i++) a++; });
+    yc_net::add_sync_worker(w, [&] { for (int i = 0; i < 100000; i++) a++; });
+    yc_net::add_sync_worker(w, [&] { printf("%d\n", a); });
 
     main_server();
 }
