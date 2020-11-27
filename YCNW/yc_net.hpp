@@ -16,7 +16,8 @@
 #include "yc_curried.hpp"
 #include "yc_function.hpp"
 #include "yc_strand.hpp"
-#include "yc_pakcet.hpp"
+#include "yc_packet.hpp"
+
 
 
 #define BUFSIZE 1024
@@ -63,7 +64,7 @@ struct client_t
     SOCKET socket;
     bool is_active;
 
-    YC_Packet_ReadManager packet_reader;
+    yc_read_manager packet_reader;
     char send_buf[1024];
 };
 
@@ -138,18 +139,30 @@ int main_server()
 
     while (1)
     {
+
         SOCKADDR_IN clntAddr;
         int addrLen = sizeof(clntAddr);
-
-        clnts.push_back(
-            client_t{ 
-                static_cast<unsigned int>(clnts.size()),
-                accept(hServSock, (SOCKADDR*)&clntAddr, &addrLen), 
-                true
-            });
-
         socket_data = new ClientHandle;
-        socket_data->mSock = clnts.back().socket;
+
+        unsigned int idx = 0;
+
+        if (std::find_if(clnts.begin(), 
+                         clnts.end(), 
+                         [&](auto& i) { idx = i.code; return !(i.is_active); }) != clnts.end())
+        {
+            clnts[idx].socket = accept(hServSock, (SOCKADDR*)&clntAddr, &addrLen);
+            clnts[idx].is_active = true;
+        }
+        else {
+            clnts.push_back(
+                client_t{
+                    static_cast<unsigned int>(clnts.size()),
+                    accept(hServSock, (SOCKADDR*)&clntAddr, &addrLen),
+                    true
+                });
+            socket_data->mSock = clnts.back().socket;
+        }
+        
         memcpy(&(socket_data->_addr), &clntAddr, addrLen);
 
         auto hIOCP = CreateIoCompletionPort(
@@ -202,6 +215,7 @@ unsigned int __stdcall CompletionThread(LPVOID pComPort)
         if (bSuccess) {
             if (len == 0)
             {
+                printf("client 立加 辆丰!\n");
                 clnts[io_data->code].is_active = false;
                 closesocket(clnt_info->mSock);
                 delete io_data;
@@ -210,20 +224,17 @@ unsigned int __stdcall CompletionThread(LPVOID pComPort)
 
             if (io_data->io_type == io_data->i)
             {
-                clnts[io_data->code].packet_reader.read((unsigned char*)io_data->wsaBuf.buf, len);
-
-                io_data->wsaBuf.buf[len] = '\0';
-                printf("%s : %s\n", inet_ntoa(clnt_info->_addr.sin_addr), io_data->wsaBuf.buf);
+                clnts[io_data->code].packet_reader.read((unsigned char*)io_data->wsaBuf.buf, len, clnt_info->mSock);
 
                 io_data->wsaBuf.len = len;
 
-                for (auto& i : clnts | std::views::filter(is_act_true))
-                {
-                    auto wio_data = io_init(new io_data_t, io_data_t::eio_type::o, len);
-                    std::copy(io_data->buffer, io_data->buffer + io_data->wsaBuf.len, wio_data->buffer);
+                //for (auto& i : clnts | std::views::filter(is_act_true))
+                //{
+                //    auto wio_data = io_init(new io_data_t, io_data_t::eio_type::o, len);
+                //    std::copy(io_data->buffer, io_data->buffer + io_data->wsaBuf.len, wio_data->buffer);
 
-                    WSASend(i.socket, &(wio_data->wsaBuf), 1, NULL, 0, &(wio_data->overlapped), NULL);
-                }
+                //    WSASend(i.socket, &(wio_data->wsaBuf), 1, NULL, 0, &(wio_data->overlapped), NULL);
+                //}
                 in_io_init(io_data);
                 flags = 0;
                 WSARecv(
@@ -241,7 +252,11 @@ unsigned int __stdcall CompletionThread(LPVOID pComPort)
             }
         }
         else {
-
+            printf("client 立加 辆丰!\n");
+            clnts[io_data->code].is_active = false;
+            closesocket(clnt_info->mSock);
+            delete io_data;
+            continue;
         }
     }
 

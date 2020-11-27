@@ -1,7 +1,6 @@
 ﻿  YCNW_client_test.cpp
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\MSBuild\Microsoft\VC\v160\Microsoft.CppCommon.targets(632,5): warning MSB8015: 모든 소스 파일이 최신 상태가 아닙니다. 'C:\Users\anyc1\Documents\GitHub\YCNW\YCNW_client_test\x64\Release\YCNW_client_test.tlog\CL.command.1.tlog'의 콘텐츠가 잘못되어 모든 소스를 강제로 다시 빌드합니다.
   코드를 생성하고 있습니다.
-  0 of 71 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+  0 of 461 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
     0 functions had inline decision re-evaluated but remain unchanged
   코드를 생성했습니다.

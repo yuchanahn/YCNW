@@ -146,10 +146,11 @@
     <ClCompile Include="YCNW.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="packet_data.hpp" />
     <ClInclude Include="yc_curried.hpp" />
     <ClInclude Include="yc_function.hpp" />
     <ClInclude Include="yc_net.hpp" />
-    <ClInclude Include="yc_pakcet.hpp" />
+    <ClInclude Include="yc_packet.hpp" />
     <ClInclude Include="yc_strand.hpp" />
     <ClInclude Include="yc_thread_safe_queue.hpp" />
   </ItemGroup>

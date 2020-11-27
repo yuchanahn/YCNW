@@ -35,7 +35,10 @@
     <ClInclude Include="yc_curried.hpp">
       <Filter>소스 파일</Filter>
     </ClInclude>
-    <ClInclude Include="yc_pakcet.hpp">
+    <ClInclude Include="packet_data.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="yc_packet.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
