@@ -147,6 +147,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="packet_data.hpp" />
+    <ClInclude Include="yc_client.hpp" />
     <ClInclude Include="yc_curried.hpp" />
     <ClInclude Include="yc_function.hpp" />
     <ClInclude Include="yc_net.hpp" />

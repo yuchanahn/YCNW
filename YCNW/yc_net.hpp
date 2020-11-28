@@ -63,6 +63,9 @@ struct client_t
     unsigned int code;
     SOCKET socket;
     bool is_active;
+    io_data_t* in_io_data;
+    io_data_t* out_io_data;
+    DWORD flag;
 
     yc_read_manager packet_reader;
     char send_buf[1024];
@@ -80,6 +83,8 @@ struct server_setting_t
 
 
 std::vector<client_t> clnts;
+std::unordered_map<size_t, yc_net::worker_info_t*> clnts_io_worker;
+std::unordered_map<yc::socket_t, size_t> clnts_socket_to_code;
 
 server_setting_t server_setting;
 
@@ -104,6 +109,22 @@ auto strand_run = [](bool& stop_button) {
     }
 };
 
+
+namespace yc_net {
+    template <typename T>
+    void send(T* packet, yc::socket_t socket) {
+        yc::byte_t buf_[1024];
+        auto len = ((packet_t<T>*) packet)->pack((yc::byte_t*)buf_);
+
+        add_sync_worker(clnts_io_worker[clnts_socket_to_code[socket]], [socket, buf = std::move(buf_), len] {
+            auto io_data = clnts[clnts_socket_to_code[socket]].out_io_data;
+            std::copy(buf, buf + len, io_data->buffer);
+            io_init(io_data, io_data_t::o, len);
+            
+            WSASend(socket, &(io_data->wsaBuf), 1, NULL, 0, &(io_data->overlapped), NULL);
+        });
+    };
+}
 
 int main_server()
 {
@@ -139,12 +160,11 @@ int main_server()
 
     while (1)
     {
-
         SOCKADDR_IN clntAddr;
         int addrLen = sizeof(clntAddr);
         socket_data = new ClientHandle;
 
-        unsigned int idx = 0;
+        size_t idx = 0;
 
         if (std::find_if(clnts.begin(), 
                          clnts.end(), 
@@ -158,10 +178,17 @@ int main_server()
                 client_t{
                     static_cast<unsigned int>(clnts.size()),
                     accept(hServSock, (SOCKADDR*)&clntAddr, &addrLen),
-                    true
+                    true,
+                    new io_data_t,
+                    new io_data_t,
+                    0
                 });
-            socket_data->mSock = clnts.back().socket;
+            idx = clnts.size() - 1;
         }
+        auto client_socket = clnts[idx].socket;
+        clnts_socket_to_code[client_socket] = clnts[idx].code;
+        clnts_io_worker[clnts[idx].code] = yc_net::create_worker();
+        socket_data->mSock = client_socket;
         
         memcpy(&(socket_data->_addr), &clntAddr, addrLen);
 
@@ -176,7 +203,7 @@ int main_server()
             return false;
         }
 
-        io_data = in_io_init(new io_data_t);
+        io_data = in_io_init(clnts[idx].in_io_data);
 
         Flags = 0;
         printf("%s|%lld\n", inet_ntoa(socket_data->_addr.sin_addr), socket_data->mSock);
@@ -193,12 +220,20 @@ int main_server()
     return 0;
 }
 
+auto client_disconnect = [](io_data_t* io_data, ClientHandle* clnt_info) {
+    printf("client[socket : %lld, addr : %s] 立加 辆丰!\n", clnt_info->mSock, inet_ntoa(clnt_info->_addr.sin_addr));
+    clnts[io_data->code].is_active = false;
+    closesocket(clnt_info->mSock);
+
+    clnts_io_worker[io_data->code]->is_active = false;
+    clnts_socket_to_code.erase(clnt_info->mSock);
+};
+
 
 unsigned int __stdcall CompletionThread(LPVOID pComPort)
 {
     HANDLE cp = (HANDLE)pComPort;
     io_data_t* io_data = nullptr;
-    DWORD flags;
 
     ClientHandle* clnt_info = NULL;
     BOOL bSuccess = TRUE;
@@ -215,47 +250,43 @@ unsigned int __stdcall CompletionThread(LPVOID pComPort)
         if (bSuccess) {
             if (len == 0)
             {
-                printf("client 立加 辆丰!\n");
-                clnts[io_data->code].is_active = false;
-                closesocket(clnt_info->mSock);
-                delete io_data;
+                client_disconnect(io_data, clnt_info);
                 continue;
             }
 
             if (io_data->io_type == io_data->i)
             {
-                clnts[io_data->code].packet_reader.read((unsigned char*)io_data->wsaBuf.buf, len, clnt_info->mSock);
+                auto sock = clnt_info->mSock;
+                auto in_io_data = clnts[io_data->code].in_io_data;
+                auto c_code = io_data->code;
 
-                io_data->wsaBuf.len = len;
+                yc_net::add_sync_worker(clnts_io_worker[io_data->code], [sock, in_io_data, c_code, len] {
+                    if (!(clnts[c_code].is_active)) {
+                        return;
+                    }
 
-                //for (auto& i : clnts | std::views::filter(is_act_true))
-                //{
-                //    auto wio_data = io_init(new io_data_t, io_data_t::eio_type::o, len);
-                //    std::copy(io_data->buffer, io_data->buffer + io_data->wsaBuf.len, wio_data->buffer);
+                    clnts[c_code].packet_reader.read((unsigned char*)in_io_data->wsaBuf.buf, len, sock);
 
-                //    WSASend(i.socket, &(wio_data->wsaBuf), 1, NULL, 0, &(wio_data->overlapped), NULL);
-                //}
-                in_io_init(io_data);
-                flags = 0;
-                WSARecv(
-                    clnt_info->mSock,
-                    &(io_data->wsaBuf),
-                    1,
-                    NULL,
-                    &flags,
-                    &(io_data->overlapped),
-                    NULL);
+                    in_io_init(in_io_data);
+                    clnts[c_code].flag = 0;
+                    WSARecv(
+                        sock,
+                        &(in_io_data->wsaBuf),
+                        1,
+                        NULL,
+                        &clnts[c_code].flag,
+                        &(in_io_data->overlapped),
+                        NULL);
+                });
+                
             }
             if (io_data->io_type == io_data->o)
             {
-                delete io_data;
+
             }
         }
         else {
-            printf("client 立加 辆丰!\n");
-            clnts[io_data->code].is_active = false;
-            closesocket(clnt_info->mSock);
-            delete io_data;
+            client_disconnect(io_data, clnt_info);
             continue;
         }
     }

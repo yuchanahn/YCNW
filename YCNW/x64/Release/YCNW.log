@@ -72,15 +72,15 @@ C:\Users\anyc1\Documents\GitHub\YCNW\YCNW\yc_packet.hpp(186): message : 컴파�
               T=p_test_packet_t,
               F=main::<lambda_1>
           ]
-C:\Users\anyc1\Documents\GitHub\YCNW\YCNW\YCNW.cpp(27): message : 컴파일되는 함수 템플릿 인스턴스화 'void yc_net::bind_ev<p_test_packet_t,main::<lambda_1>>(F)'에 대한 참조를 확인하세요.
+C:\Users\anyc1\Documents\GitHub\YCNW\YCNW\YCNW.cpp(41): message : 컴파일되는 함수 템플릿 인스턴스화 'void yc_net::bind_ev<p_test_packet_t,main::<lambda_1>>(F)'에 대한 참조를 확인하세요.
           with
           [
               F=main::<lambda_1>
           ]
   코드를 생성하고 있습니다.
-  2 of 1329 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
+  6 of 1804 functions ( 0.3%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    1 functions had inline decision re-evaluated but remain unchanged
+    6 functions had inline decision re-evaluated but remain unchanged
   코드를 생성했습니다.
 LINK : warning LNK4020: 'c:\users\anyc1\documents\github\ycnw\ycnw\x64\release\vc142.pdb'의 형식 레코드가 손상되었습니다. 디버거에서 일부 기호와 형식에 액세스할 수 없습니다.
   YCNW.vcxproj -> C:\Users\anyc1\Documents\GitHub\YCNW\x64\Release\YCNW.exe

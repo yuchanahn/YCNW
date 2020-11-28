@@ -41,5 +41,8 @@
     <ClInclude Include="yc_packet.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="yc_client.hpp">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

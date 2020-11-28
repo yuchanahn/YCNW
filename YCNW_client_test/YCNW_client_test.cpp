@@ -1,7 +1,7 @@
 ﻿#define _WINSOCK_DEPRECATED_NO_WARNINGS
 
 #include "packet_data.hpp"
-#include "client_oop.hpp"
+#include "yc_client.hpp"
 #include <WinSock2.h>
 
 #include <thread>
@@ -21,6 +21,10 @@ int main()
 
 	yc_client master;
 	master.connect("127.0.0.1", 2738);
+
+	yc_net::bind_ev<p_test_packet_t>([](p_test_packet_t* test_packet, auto) {
+		printf("test_packet : %d\n", test_packet->number);
+	});
 
 	std::thread th([&] {
 		while (1)
