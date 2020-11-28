@@ -2,23 +2,25 @@
 #include "yc_net.hpp"
 #include "yc_worker.hpp"
 #include "packet_data.hpp"
-
+#include "yc_time.hpp"
 
 auto w = yc_net::create_worker();
-int cnt = 0;
+
+
 void loop()
 {
+    yc::time::update_delta_time();
 
-    if (cnt < 10) {
-        for (auto& i : clnts | std::views::filter(is_act_true))
-        {
-            p_test_packet_t p;
-            p.number = 9999;
-
-            yc_net::send(&p, i.socket);
-            cnt++;
-        }
+    static size_t fps = 0;
+    static float dt = 0;
+    fps++;
+    if ((dt += yc::time::get_delta_time()) > 1.f)
+    {
+        printf("%lld\n", fps);
+        fps = 0;
+        dt = 0;
     }
+
     yc_net::add_sync_worker(w, loop);
 }
 
@@ -31,6 +33,15 @@ int main()
         .worker_thread_number = 2,
         .port = 2738
     };
+
+    yc_net::connect_callback = [](yc::socket_t socket) {
+        printf("connect! [SOCKET : %lld, ADDR : %s]\n", socket, yc_net::get_clnt_addrs(socket).c_str());
+    };
+
+    yc_net::disconnect_callback = [](yc::socket_t socket) {
+        printf("disconnect! [SOCKET : %lld, ADDR : %s]\n", socket, yc_net::get_clnt_addrs(socket).c_str());
+    };
+
 
     bool stop = false;
     int a = 0;

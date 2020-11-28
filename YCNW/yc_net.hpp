@@ -68,7 +68,6 @@ struct client_t
     DWORD flag;
 
     yc_read_manager packet_reader;
-    char send_buf[1024];
 };
 
 struct server_setting_t
@@ -85,8 +84,11 @@ struct server_setting_t
 std::vector<client_t> clnts;
 std::unordered_map<size_t, yc_net::worker_info_t*> clnts_io_worker;
 std::unordered_map<yc::socket_t, size_t> clnts_socket_to_code;
+std::unordered_map<yc::socket_t, SOCKADDR_IN> clnts_addrs;
 
 server_setting_t server_setting;
+
+
 
 static auto io_init = [](io_data_t* io_data, io_data_t::eio_type t, int len) {
     memset(&io_data->overlapped, 0, sizeof(OVERLAPPED));
@@ -111,20 +113,30 @@ auto strand_run = [](bool& stop_button) {
 
 
 namespace yc_net {
+    std::function<void(yc::socket_t socket)> disconnect_callback;
+    std::function<void(yc::socket_t socket)> connect_callback;
+
+    auto get_clnt_addrs = [](yc::socket_t socket) {
+        return std::string(inet_ntoa(clnts_addrs[socket].sin_addr));
+    };
+
     template <typename T>
     void send(T* packet, yc::socket_t socket) {
         yc::byte_t buf_[1024];
         auto len = ((packet_t<T>*) packet)->pack((yc::byte_t*)buf_);
 
-        add_sync_worker(clnts_io_worker[clnts_socket_to_code[socket]], [socket, buf = std::move(buf_), len] {
-            auto io_data = clnts[clnts_socket_to_code[socket]].out_io_data;
+        add_sync_worker(clnts_io_worker[clnts_socket_to_code[socket]], [socket, buf = std::move(buf_), len]{
+            auto code = clnts_socket_to_code[socket];
+            auto io_data = clnts[code].out_io_data;
             std::copy(buf, buf + len, io_data->buffer);
             io_init(io_data, io_data_t::o, len);
-            
+            io_data->code = code;
             WSASend(socket, &(io_data->wsaBuf), 1, NULL, 0, &(io_data->overlapped), NULL);
         });
     };
 }
+
+
 
 int main_server()
 {
@@ -202,11 +214,13 @@ int main_server()
             printf("[error] CreateIoCompletionPort(): %d", GetLastError());
             return false;
         }
-
         io_data = in_io_init(clnts[idx].in_io_data);
-
+        io_data->code = clnts[idx].code;
         Flags = 0;
-        printf("%s|%lld\n", inet_ntoa(socket_data->_addr.sin_addr), socket_data->mSock);
+
+        clnts_addrs[socket_data->mSock] = socket_data->_addr;
+
+        //printf("%s|%lld\n", inet_ntoa(socket_data->_addr.sin_addr), socket_data->mSock);
         WSARecv(
             socket_data->mSock, 
             &(io_data->wsaBuf), 
@@ -215,18 +229,21 @@ int main_server()
             (LPDWORD)&Flags, 
             &(io_data->overlapped), 
             NULL);
+        yc_net::connect_callback(socket_data->mSock);
     }
 
     return 0;
 }
 
 auto client_disconnect = [](io_data_t* io_data, ClientHandle* clnt_info) {
-    printf("client[socket : %lld, addr : %s] 立加 辆丰!\n", clnt_info->mSock, inet_ntoa(clnt_info->_addr.sin_addr));
+    //printf("client[socket : %lld, addr : %s] 立加 辆丰!\n", clnt_info->mSock, inet_ntoa(clnt_info->_addr.sin_addr));
     clnts[io_data->code].is_active = false;
     closesocket(clnt_info->mSock);
 
     clnts_io_worker[io_data->code]->is_active = false;
     clnts_socket_to_code.erase(clnt_info->mSock);
+
+    yc_net::disconnect_callback(clnt_info->mSock);
 };
 
 
@@ -259,15 +276,25 @@ unsigned int __stdcall CompletionThread(LPVOID pComPort)
                 auto sock = clnt_info->mSock;
                 auto in_io_data = clnts[io_data->code].in_io_data;
                 auto c_code = io_data->code;
-
-                yc_net::add_sync_worker(clnts_io_worker[io_data->code], [sock, in_io_data, c_code, len] {
+                auto ch = *clnt_info;
+                yc_net::add_sync_worker(clnts_io_worker[io_data->code], [sock, in_io_data, c_code, len, ch] {
                     if (!(clnts[c_code].is_active)) {
                         return;
                     }
 
-                    clnts[c_code].packet_reader.read((unsigned char*)in_io_data->wsaBuf.buf, len, sock);
+                    try
+                    {
+                        clnts[c_code].packet_reader.read((unsigned char*)in_io_data->buffer, len, sock);
+                    }
+                    catch (const std::exception& )
+                    {
+                        client_disconnect(in_io_data, (ClientHandle*)&ch);
+                    }
+                    
 
                     in_io_init(in_io_data);
+                    in_io_data->code = clnts[c_code].code;
+
                     clnts[c_code].flag = 0;
                     WSARecv(
                         sock,

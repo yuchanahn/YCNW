@@ -14,7 +14,6 @@
 namespace yc_net 
 {
 	struct worker_info_t {
-		std::thread::id thread_id;
 		bool on_duty = false;
 		bool is_active = true;
 		std::mutex m;
@@ -51,9 +50,9 @@ namespace yc_net
 		while (!stop_button)
 		{
 			for (auto& i : workers | std::views::filter([](auto& i) { return pis_act_true(i.first); })
-						   		   | std::views::filter([](auto& i) { return i.second.size(); })
-						   		   | std::views::filter([](auto& i) { return !(i.first->on_duty); }))
-			{
+							 | std::views::filter([](auto& i) { return i.second.size(); })
+							 | std::views::filter([](auto& i) { return !(i.first->on_duty); })
+							 | std::views::take(1)) {
 				std::unique_lock lock(i.first->m);
 				if (i.first->on_duty)
 				{
@@ -67,6 +66,25 @@ namespace yc_net
 				lock.lock();
 				i.first->on_duty = false;
 			}
+
+
+			//for (auto& i : workers | std::views::filter([](auto& i) { return pis_act_true(i.first); })
+			//			   		   | std::views::filter([](auto& i) { return i.second.size(); })
+			//			   		   | std::views::filter([](auto& i) { return !(i.first->on_duty); }))
+			//{
+			//	std::unique_lock lock(i.first->m);
+			//	if (i.first->on_duty)
+			//	{
+			//		continue;
+			//	}
+			//	i.first->on_duty = true;
+			//	auto v = i.second;
+			//	i.second.clear();
+			//	lock.unlock();
+			//	invoke_all(v);
+			//	lock.lock();
+			//	i.first->on_duty = false;
+			//}
 		}
 	}
 }
