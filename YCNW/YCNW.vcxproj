@@ -152,7 +152,7 @@
     <ClInclude Include="yc_function.hpp" />
     <ClInclude Include="yc_net.hpp" />
     <ClInclude Include="yc_packet.hpp" />
-    <ClInclude Include="yc_strand.hpp" />
+    <ClInclude Include="yc_worker.hpp" />
     <ClInclude Include="yc_thread_safe_queue.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
