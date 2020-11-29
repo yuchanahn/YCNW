@@ -157,7 +157,7 @@ int main_server()
     SOCKADDR_IN servAddr;
     servAddr.sin_family = AF_INET;
     servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    servAddr.sin_port = htons(2738);
+    servAddr.sin_port = htons(server_setting.port);
 
     bind(hServSock, (SOCKADDR*)&servAddr, sizeof(servAddr));
     listen(hServSock, 5);
