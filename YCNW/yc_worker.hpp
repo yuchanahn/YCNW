@@ -7,7 +7,6 @@
 #include <unordered_map>
 
 #include "yc_function.hpp"
-#include "yc_thread_safe_queue.hpp"
 #include "yc_net.hpp"
 
 
@@ -62,7 +61,7 @@ namespace yc_net
 				auto v = i.second;
 				i.second.clear();
 				lock.unlock();
-				invoke_all(v);
+				yc::invoke_all(v);
 				lock.lock();
 				i.first->on_duty = false;
 			}

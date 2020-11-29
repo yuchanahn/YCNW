@@ -13,7 +13,6 @@
 #include <algorithm>
 #include <ranges>
 
-#include "yc_curried.hpp"
 #include "yc_function.hpp"
 #include "yc_worker.hpp"
 #include "yc_packet.hpp"

@@ -26,12 +26,6 @@
     <ClInclude Include="yc_function.hpp">
       <Filter>소스 파일</Filter>
     </ClInclude>
-    <ClInclude Include="yc_thread_safe_queue.hpp">
-      <Filter>소스 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="yc_curried.hpp">
-      <Filter>소스 파일</Filter>
-    </ClInclude>
     <ClInclude Include="yc_client.hpp">
       <Filter>소스 파일</Filter>
     </ClInclude>
