@@ -7,6 +7,16 @@
 #include "yc_packet.hpp"
 #include <winsock2.h>
 
+namespace yc_net_cl
+{
+	template <typename T>
+	void send(T& t, yc::byte_t buf[1024], yc::socket_t socket)
+	{
+		auto len = ((packet_t<T>*) & t)->pack((unsigned char*)buf);
+		::send(socket, (const char*)buf, len, 0);
+	}
+}
+
 class yc_read_manager;
 class yc_client
 {
