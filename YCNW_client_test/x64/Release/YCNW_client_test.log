@@ -37,7 +37,7 @@ C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\VC\Tools\MSVC\1
           [
               _Ret=void
           ]
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\VC\Tools\MSVC\14.28.29333\include\functional(1037): message : see reference to variable template 'const bool _Is_large<std::_Func_impl_no_alloc<`PacketEvent::bind_event<p_test_packet_t,`main'::`2'::<lambda_1> >'::`2'::<lambda_1>,void,void *,unsigned __int64> >' being compiled
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\VC\Tools\MSVC\14.28.29333\include\functional(1037): message : see reference to variable template 'const bool _Is_large<std::_Func_impl_no_alloc<`PacketEvent::bind_event<p_packet02_t,`main'::`2'::<lambda_3> >'::`2'::<lambda_1>,void,void *,unsigned __int64> >' being compiled
 C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\VC\Tools\MSVC\14.28.29333\include\functional(1170): message : see reference to function template instantiation 'void std::_Func_class<_Ret,void *,yc::socket_t>::_Reset<PacketEvent::bind_event::<lambda_1>>(_Fx &&)' being compiled
           with
           [
@@ -63,23 +63,23 @@ C:\Users\anyc1\Documents\GitHub\YCNW\YCNW\yc_packet.hpp(75): message : see refer
 C:\Users\anyc1\Documents\GitHub\YCNW\YCNW\yc_packet.hpp(177): message : see reference to function template instantiation 'void PacketEvent::bind_event<T,F>(F)' being compiled
           with
           [
-              T=p_test_packet_t,
-              F=main::<lambda_1>
+              T=p_packet02_t,
+              F=main::<lambda_3>
           ]
 C:\Users\anyc1\Documents\GitHub\YCNW\YCNW\yc_packet.hpp(186): message : see reference to function template instantiation 'void ioev::Signal<T,F>(F)' being compiled
           with
           [
-              T=p_test_packet_t,
-              F=main::<lambda_1>
+              T=p_packet02_t,
+              F=main::<lambda_3>
           ]
-C:\Users\anyc1\Documents\GitHub\YCNW\YCNW_client_test\YCNW_client_test.cpp(27): message : see reference to function template instantiation 'void yc_net::bind_ev<p_test_packet_t,main::<lambda_1>>(F)' being compiled
+C:\Users\anyc1\Documents\GitHub\YCNW\YCNW_client_test\YCNW_client_test.cpp(35): message : see reference to function template instantiation 'void yc_net::bind_ev<p_packet02_t,main::<lambda_3>>(F)' being compiled
           with
           [
-              F=main::<lambda_1>
+              F=main::<lambda_3>
           ]
   Generating code
-  0 of 506 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
+  73 of 556 functions (13.1%) were compiled, the rest were copied from previous compilation.
+    69 functions were new in current compilation
+    41 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   YCNW_client_test.vcxproj -> C:\Users\anyc1\Documents\GitHub\YCNW\x64\Release\YCNW_client_test.exe

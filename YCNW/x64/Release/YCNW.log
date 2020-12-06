@@ -1,4 +1,10 @@
 ﻿  YCNW.cpp
+C:\Users\anyc1\Documents\GitHub\YCNW\YCNW\yc_net.hpp(155,1): warning C4267: '=': conversion from 'size_t' to 'unsigned int', possible loss of data
+C:\Users\anyc1\Documents\GitHub\YCNW\YCNW\YCNW.cpp(62): message : see reference to function template instantiation 'void yc_net::send<p_packet01_t>(T *,yc::socket_t)' being compiled
+          with
+          [
+              T=p_packet01_t
+          ]
 C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\VC\Tools\MSVC\14.28.29333\include\type_traits(1595,98): warning C4244: 'argument': conversion from '_Ty' to 'int', possible loss of data
           with
           [
@@ -72,15 +78,14 @@ C:\Users\anyc1\Documents\GitHub\YCNW\YCNW\yc_packet.hpp(186): message : see refe
               T=p_test_packet_t,
               F=main::<lambda_3>
           ]
-C:\Users\anyc1\Documents\GitHub\YCNW\YCNW\YCNW.cpp(52): message : see reference to function template instantiation 'void yc_net::bind_ev<p_test_packet_t,main::<lambda_3>>(F)' being compiled
+C:\Users\anyc1\Documents\GitHub\YCNW\YCNW\YCNW.cpp(62): message : see reference to function template instantiation 'void yc_net::bind_ev<p_test_packet_t,main::<lambda_3>>(F)' being compiled
           with
           [
               F=main::<lambda_3>
           ]
   Generating code
-  1 of 1924 functions (<0.1%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    1 functions had inline decision re-evaluated but remain unchanged
+  19 of 2211 functions ( 0.9%) were compiled, the rest were copied from previous compilation.
+    2 functions were new in current compilation
+    5 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
-LINK : warning LNK4020: a type record in 'c:\users\anyc1\documents\github\ycnw\ycnw\x64\release\vc142.pdb' is corrupted; some symbols and types may not be accessible from the debugger
   YCNW.vcxproj -> C:\Users\anyc1\Documents\GitHub\YCNW\x64\Release\YCNW.exe

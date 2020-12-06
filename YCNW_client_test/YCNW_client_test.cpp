@@ -26,6 +26,14 @@ int main()
 		printf("test_packet : %d\n", test_packet->number);
 	});
 
+	yc_net::bind_ev<p_packet01_t>([](p_packet01_t* test_packet, auto) {
+		printf("01 : %d\n", test_packet->number);
+	});
+
+	yc_net::bind_ev<p_packet02_t>([](p_packet02_t* test_packet, auto) {
+		printf("02 : %d\n", test_packet->number);
+	});
+
 	std::thread th([&] {
 		while (1)
 		{
@@ -46,7 +54,7 @@ int main()
 	{
 		p_test_packet_t t;
 		std::cin >> t.number;
-		send(t,buf, master.get_socket());
+		send(t, buf, master.get_socket());
 	}
 
 	th.join();

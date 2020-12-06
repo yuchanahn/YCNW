@@ -41,6 +41,7 @@ struct io_data_t
     };
     eio_type io_type;
     unsigned int code;
+    bool is_active = false;
 };
 
 unsigned int __stdcall CompletionThread(LPVOID pComPort);
@@ -62,8 +63,6 @@ struct client_t
     unsigned int code;
     SOCKET socket;
     bool is_active;
-    io_data_t* in_io_data;
-    io_data_t* out_io_data;
     DWORD flag;
 
     yc_read_manager packet_reader;
@@ -88,7 +87,7 @@ std::unordered_map<yc::socket_t, SOCKADDR_IN> clnts_addrs;
 server_setting_t server_setting;
 
 
-
+// 쓰레드에서 스레드 넘버로 풀링 할 수 있게끔 해놓자.
 static auto io_init = [](io_data_t* io_data, io_data_t::eio_type t, int len) {
     memset(&io_data->overlapped, 0, sizeof(OVERLAPPED));
     io_data->wsaBuf.buf = io_data->buffer;
@@ -110,6 +109,27 @@ auto strand_run = [](bool& stop_button) {
     }
 };
 
+namespace yc_io_sp
+{
+    std::unordered_map<std::thread::id, std::vector<io_data_t*>> io_datas;
+
+    io_data_t* create_io() {
+        std::vector<io_data_t*>& datas = io_datas[std::this_thread::get_id()];
+        io_data_t* d = nullptr;
+
+        for (auto& i : datas | std::views::filter(pis_act_false))
+        {
+            d = i;
+        }
+        if (!d)
+        {
+            datas.push_back(new io_data_t());
+            d = datas.back();
+        }
+        d->is_active = true;
+        return d;
+    };
+}
 
 namespace yc_net {
     std::function<void(yc::socket_t socket)> disconnect_callback;
@@ -124,10 +144,11 @@ namespace yc_net {
         yc::byte_t buf_[1024];
         auto len = ((packet_t<T>*) packet)->pack((yc::byte_t*)buf_);
 
-        add_sync_worker(clnts_io_worker[clnts_socket_to_code[socket]], [socket, buf = std::move(buf_), len]{
+        auto io_data = yc_io_sp::create_io();
+        std::copy(buf_, buf_ + len, io_data->buffer);
+
+        add_sync_worker(clnts_io_worker[clnts_socket_to_code[socket]], [socket, io_data, len]{
             auto code = clnts_socket_to_code[socket];
-            auto io_data = clnts[code].out_io_data;
-            std::copy(buf, buf + len, io_data->buffer);
             io_init(io_data, io_data_t::o, len);
             io_data->code = code;
             WSASend(socket, &(io_data->wsaBuf), 1, NULL, 0, &(io_data->overlapped), NULL);
@@ -190,8 +211,6 @@ int main_server()
                     static_cast<unsigned int>(clnts.size()),
                     accept(hServSock, (SOCKADDR*)&clntAddr, &addrLen),
                     true,
-                    new io_data_t,
-                    new io_data_t,
                     0
                 });
             idx = clnts.size() - 1;
@@ -213,7 +232,7 @@ int main_server()
             printf("[error] CreateIoCompletionPort(): %d", GetLastError());
             return false;
         }
-        io_data = in_io_init(clnts[idx].in_io_data);
+        io_data = in_io_init(yc_io_sp::create_io());
         io_data->code = clnts[idx].code;
         Flags = 0;
 
@@ -246,6 +265,7 @@ auto client_disconnect = [](io_data_t* io_data, ClientHandle* clnt_info) {
 };
 
 
+
 unsigned int __stdcall CompletionThread(LPVOID pComPort)
 {
     HANDLE cp = (HANDLE)pComPort;
@@ -254,6 +274,7 @@ unsigned int __stdcall CompletionThread(LPVOID pComPort)
     ClientHandle* clnt_info = NULL;
     BOOL bSuccess = TRUE;
     DWORD len;
+
 
     while (1) {
         bSuccess = GetQueuedCompletionStatus(
@@ -273,9 +294,13 @@ unsigned int __stdcall CompletionThread(LPVOID pComPort)
             if (io_data->io_type == io_data->i)
             {
                 auto sock = clnt_info->mSock;
-                auto in_io_data = clnts[io_data->code].in_io_data;
+                auto in_io_data = yc_io_sp::create_io();
                 auto c_code = io_data->code;
                 auto ch = *clnt_info;
+                
+                std::copy(io_data, (io_data_t*)(((char*)io_data) + sizeof(io_data_t)), in_io_data);
+
+                io_data->is_active = false;
                 yc_net::add_sync_worker(clnts_io_worker[io_data->code], [sock, in_io_data, c_code, len, ch] {
                     if (!(clnts[c_code].is_active)) {
                         return;
@@ -289,7 +314,6 @@ unsigned int __stdcall CompletionThread(LPVOID pComPort)
                     {
                         client_disconnect(in_io_data, (ClientHandle*)&ch);
                     }
-                    
 
                     in_io_init(in_io_data);
                     in_io_data->code = clnts[c_code].code;
@@ -308,7 +332,7 @@ unsigned int __stdcall CompletionThread(LPVOID pComPort)
             }
             if (io_data->io_type == io_data->o)
             {
-
+                io_data->is_active = false;
             }
         }
         else {

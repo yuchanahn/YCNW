@@ -49,6 +49,16 @@ int main()
 
     yc_net::bind_ev<p_test_packet_t>([](p_test_packet_t* packet, yc::socket_t socket) {
         printf("SOCKET : %lld - %d\n", socket, packet->number);
+
+        auto p = p_packet01_t{
+            999
+        };
+        auto p2 = p_packet02_t{
+            555
+        };
+
+        yc_net::send(&p, socket);
+        yc_net::send(&p2, socket);
     });
 
     yc_net::add_sync_worker(w, loop);
