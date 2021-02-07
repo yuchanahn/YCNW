@@ -1,6 +1,6 @@
 ## How To Make C++ Server
 
-useing header only lib 'YCNW'
+using header only lib 'YCNW'
 
 ```cpp
 #include "yc_net.hpp"
