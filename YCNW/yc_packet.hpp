@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <functional>
 
+
 namespace yc
 {
 	using byte_t = unsigned char;
@@ -54,8 +55,10 @@ public:
 
 		int_to_byte s_to_b;
 		s_to_b.i = packet_events[typeid(T).hash_code()];
+
 		std::copy(s_to_b.b, s_to_b.b + sizeof(int), curBuffer);
 		curBuffer += sizeof(int);
+
 		std::copy(ToByte(), ToByte() + sizeof(T), curBuffer);
 		return i_to_b.i;
 	}
@@ -63,7 +66,7 @@ public:
 #pragma pack(pop)
 
 
-
+#define INT2 sizeof(int) + sizeof(int)
 
 class PacketEvent
 {
@@ -95,55 +98,33 @@ public:
 };
 class yc_read_manager
 {
-	unsigned char buf[2048]; // 자기 저장용 버퍼.
-	int i = 0;		// 버퍼 현재 인덱스.
-	int _size = -1;
-
+	std::vector<char> buf;
 public:
-	void read(unsigned char* r_buf, int r_size, yc::socket_t id = -1)
+
+	void read(unsigned char* buf, int len, yc::socket_t id = -1)
 	{
-		bool trigger = false;
+		std::vector<char> b;
+		for (int i = 0; i < len; i++) 
+			b.push_back(buf[i]);
+		read(b, id);
+	}
 
-		std::copy(r_buf + i, r_buf + i + r_size, &buf[i]);
-
-		if ((i += r_size) < 4)
-		{
-			return;
-		}
-		if (_size == -1)
-		{
-			int_to_byte i_to_b;
-			std::copy(buf, buf + sizeof(int), i_to_b.b);
-			_size = i_to_b.i;
-		}
-
-		if (i >= _size)
-		{
-			int_to_byte i_to_b;
-			std::copy(buf + sizeof(int), buf + sizeof(int) + sizeof(int), i_to_b.b);
-			auto _id = i_to_b.i;
-
-			if (id != -1)
-				PacketEvent::signal_event(_id, buf + sizeof(int) + sizeof(int), id);
-			else
-				PacketEvent::signal_event(_id, buf + sizeof(int) + sizeof(int));
-
-			if (i > _size)
-			{
-				std::copy(&buf[_size], (&buf[_size]) + ((size_t)i - _size), buf);
-				trigger = true;
+	void read(std::vector<char> new_packets, yc::socket_t id = -1)
+	{
+		buf.insert(buf.end(), new_packets.begin(), new_packets.end());
+		if (buf.size() < INT2) return;
+		int packet_size = *((int*)(&buf[0]));
+		int packet_id = *((int*)(&buf[sizeof(int)]));
+		while (buf.size() >= packet_size) {
+			if (id != -1) PacketEvent::signal_event(packet_id, &buf[INT2], id);
+			else		  PacketEvent::signal_event(packet_id, &buf[INT2]);
+			std::vector<char> new_buffer;
+			for (int i = packet_size; i < buf.size(); i++) {
+				new_buffer.push_back(buf[i]);
 			}
-			i = i - _size;
-			_size = -1;
-		}
-		if (trigger)
-		{
-			auto start_idx = i;
-			i = 0;
-			if (id == -1)
-				read(buf, start_idx);
-			else
-				read(buf, start_idx, id);
+			buf = new_buffer;
+			packet_size = (buf.size() >= sizeof(int)) ? (*((int*)(&buf[0]))) : packet_size;
+			packet_id = (buf.size() >= INT2) ? (*((int*)(&buf[sizeof(int)]))) : packet_id;
 		}
 	}
 

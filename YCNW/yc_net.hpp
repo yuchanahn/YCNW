@@ -19,6 +19,21 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #define BUFSIZE 1024
 
 class ClientHandle
@@ -53,9 +68,9 @@ auto is_success_or(E e, F f) {
     if (e) f(e.value());
 };
 
-auto error_f = [](std::string s) { 
+auto error_f = [](std::string s) {
     printf("%s", s.c_str());
-    exit(1); 
+    exit(1);
 };
 
 struct client_t
@@ -103,8 +118,8 @@ auto strand_run = [](bool& stop_button) {
     static std::vector<std::thread> ths;
 
     int th_cnt = server_setting.worker_thread_number ? server_setting.worker_thread_number
-                                                      : std::thread::hardware_concurrency();
-    for (int i = 0; i < th_cnt; ++i){
+        : std::thread::hardware_concurrency();
+    for (int i = 0; i < th_cnt; ++i) {
         ths.push_back(std::thread([&stop_button] { yc_net::run_wokers_in_this_thread(stop_button); }));
     }
 };
@@ -147,12 +162,12 @@ namespace yc_net {
         auto io_data = yc_io_sp::create_io();
         std::copy(buf_, buf_ + len, io_data->buffer);
 
-        add_sync_worker(clnts_io_worker[clnts_socket_to_code[socket]], [socket, io_data, len]{
+        add_sync_worker(clnts_io_worker[clnts_socket_to_code[socket]], [socket, io_data, len] {
             auto code = clnts_socket_to_code[socket];
             io_init(io_data, io_data_t::o, len);
             io_data->code = code;
             WSASend(socket, &(io_data->wsaBuf), 1, NULL, 0, &(io_data->overlapped), NULL);
-        });
+            });
     };
 }
 
@@ -161,7 +176,7 @@ namespace yc_net {
 int main_server()
 {
     WSADATA wsaData;
-   
+
     is_success_or(
         WSAStartup(MAKEWORD(2, 2), &wsaData) != 0 ? std::make_optional("WSAStartup() error\n") : std::nullopt,
         error_f
@@ -169,7 +184,7 @@ int main_server()
 
     HANDLE hCompletionPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
     int th_cnt = server_setting.io_thread_number ? server_setting.io_thread_number
-                                                  : std::thread::hardware_concurrency();
+        : std::thread::hardware_concurrency();
     for (int i = 0; i < th_cnt; ++i)
         _beginthreadex(NULL, 0, CompletionThread, (LPVOID)hCompletionPort, 0, NULL);
 
@@ -198,9 +213,9 @@ int main_server()
 
         size_t idx = 0;
 
-        if (std::find_if(clnts.begin(), 
-                         clnts.end(), 
-                         [&](auto& i) { idx = i.code; return !(i.is_active); }) != clnts.end())
+        if (std::find_if(clnts.begin(),
+            clnts.end(),
+            [&](auto& i) { idx = i.code; return !(i.is_active); }) != clnts.end())
         {
             clnts[idx].socket = accept(hServSock, (SOCKADDR*)&clntAddr, &addrLen);
             clnts[idx].is_active = true;
@@ -219,7 +234,7 @@ int main_server()
         clnts_socket_to_code[client_socket] = clnts[idx].code;
         clnts_io_worker[clnts[idx].code] = yc_net::create_worker();
         socket_data->mSock = client_socket;
-        
+
         memcpy(&(socket_data->_addr), &clntAddr, addrLen);
 
         auto hIOCP = CreateIoCompletionPort(
@@ -240,12 +255,12 @@ int main_server()
 
         //printf("%s|%lld\n", inet_ntoa(socket_data->_addr.sin_addr), socket_data->mSock);
         WSARecv(
-            socket_data->mSock, 
-            &(io_data->wsaBuf), 
-            1, 
-            (LPDWORD)&RecvBytes, 
-            (LPDWORD)&Flags, 
-            &(io_data->overlapped), 
+            socket_data->mSock,
+            &(io_data->wsaBuf),
+            1,
+            (LPDWORD)&RecvBytes,
+            (LPDWORD)&Flags,
+            &(io_data->overlapped),
             NULL);
         yc_net::connect_callback(socket_data->mSock);
     }
@@ -254,7 +269,6 @@ int main_server()
 }
 
 auto client_disconnect = [](io_data_t* io_data, ClientHandle* clnt_info) {
-    //printf("client[socket : %lld, addr : %s] 접속 종료!\n", clnt_info->mSock, inet_ntoa(clnt_info->_addr.sin_addr));
     clnts[io_data->code].is_active = false;
     closesocket(clnt_info->mSock);
 
@@ -275,14 +289,13 @@ unsigned int __stdcall CompletionThread(LPVOID pComPort)
     BOOL bSuccess = TRUE;
     DWORD len;
 
-
     while (1) {
         bSuccess = GetQueuedCompletionStatus(
             cp,
-            &len,                       
-            (PULONG_PTR)&clnt_info,     
+            &len,
+            (PULONG_PTR)&clnt_info,
             (LPOVERLAPPED*)&io_data,
-            INFINITE);                  
+            INFINITE);
 
         if (bSuccess) {
             if (len == 0)
@@ -297,7 +310,7 @@ unsigned int __stdcall CompletionThread(LPVOID pComPort)
                 auto in_io_data = yc_io_sp::create_io();
                 auto c_code = io_data->code;
                 auto ch = *clnt_info;
-                
+
                 std::copy(io_data, (io_data_t*)(((char*)io_data) + sizeof(io_data_t)), in_io_data);
 
                 io_data->is_active = false;
@@ -305,12 +318,11 @@ unsigned int __stdcall CompletionThread(LPVOID pComPort)
                     if (!(clnts[c_code].is_active)) {
                         return;
                     }
-
                     try
                     {
                         clnts[c_code].packet_reader.read((unsigned char*)in_io_data->buffer, len, sock);
                     }
-                    catch (const std::exception& )
+                    catch (const std::exception&)
                     {
                         client_disconnect(in_io_data, (ClientHandle*)&ch);
                     }
@@ -327,8 +339,8 @@ unsigned int __stdcall CompletionThread(LPVOID pComPort)
                         &clnts[c_code].flag,
                         &(in_io_data->overlapped),
                         NULL);
-                });
-                
+                    });
+
             }
             if (io_data->io_type == io_data->o)
             {
